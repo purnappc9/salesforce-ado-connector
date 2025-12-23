@@ -82,11 +82,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load backup folder handle
     try {
-        backupFolderHandle = await getBackupFolderHandle();
-        await updateBackupFolderUI();
+        const handle = await getBackupFolderHandle();
+        if (handle) {
+            console.log('Loaded folder handle:', handle.name);
+            // Verify it's still accessible
+            try {
+                const permission = await handle.queryPermission({ mode: 'readwrite' });
+                if (permission === 'granted' || permission === 'prompt') {
+                    backupFolderHandle = handle;
+                    console.log('Folder handle verified and loaded');
+                } else {
+                    console.log('Permission not granted, clearing handle');
+                    await clearBackupFolderHandle();
+                }
+            } catch (permError) {
+                console.error('Error verifying folder permission:', permError);
+                await clearBackupFolderHandle();
+            }
+        } else {
+            console.log('No saved folder handle found');
+        }
     } catch (e) {
-        console.log('No backup folder configured or error loading:', e);
+        console.error('Error loading backup folder:', e);
     }
+
+    // Update UI after loading
+    await updateBackupFolderUI();
 
     // Status helper
     const statusDiv = document.getElementById('status');
