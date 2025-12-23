@@ -602,20 +602,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateStatus('Step 1: Connecting to Salesforce...');
             let serverUrl, sessionId;
 
-            if (isFullPage) {
-                const stored = await chrome.storage.local.get(['sfContext']);
-                if (stored.sfContext) {
-                    // Use stored session directly instead of re-fetching
-                    serverUrl = stored.sfContext.serverUrl;
-                    sessionId = stored.sfContext.sessionId;
-                    console.log('Using stored session:', serverUrl);
-                } else {
-                    // No stored session, try to get from current tab
-                    const session = await Salesforce.getSession();
-                    serverUrl = session.serverUrl;
-                    sessionId = session.sessionId;
-                }
+            // Check for stored session from Reconnect (works in both popup and full page mode)
+            const stored = await chrome.storage.local.get(['sfContext']);
+
+            if (stored.sfContext) {
+                // Use stored session from reconnect
+                serverUrl = stored.sfContext.serverUrl;
+                sessionId = stored.sfContext.sessionId;
+                console.log('Using stored session from reconnect:', serverUrl);
+            } else if (isFullPage) {
+                // Full page mode with no stored session - shouldn't happen, but fallback
+                const session = await Salesforce.getSession();
+                serverUrl = session.serverUrl;
+                sessionId = session.sessionId;
             } else {
+                // Popup mode with no stored session - get from active tab
                 const session = await Salesforce.getSession();
                 serverUrl = session.serverUrl;
                 sessionId = session.sessionId;
