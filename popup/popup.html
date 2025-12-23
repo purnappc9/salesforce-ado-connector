@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>SF to ADO Sync</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0;">SF to ADO Sync</h2>
+      <div style="display: flex; gap: 10px;">
+        <button id="btn-full-page" style="flex: 1; padding: 5px;">Open in Full Page</button>
+        <button id="btn-reconnect-sf" style="padding: 5px;" title="Refresh Salesforce Session">Reconnect</button>
+      </div>
+    </div>
+
+    <!-- Hidden Org Picker for Multi-Org Switching -->
+    <div id="org-picker" class="section" style="display: none; border: 2px solid #007bff; background: #eefbff;">
+      <h3 style="margin-top: 0;">Select Salesforce Org</h3>
+      <div id="org-list" style="display: flex; flex-direction: column; gap: 5px;"></div>
+      <button id="btn-cancel-picker" style="margin-top: 10px; background: #6c757d;">Cancel</button>
+    </div>
+
+    <!-- Hidden Org Picker Removed -->
+
+    <div class="section" id="ado-config">
+      <h3>Azure DevOps Configuration</h3>
+      <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+        <input type="text" id="ado-url-input" placeholder="Paste Repo URL to Autofill" style="flex: 1;" />
+        <button id="btn-autofill" style="width: auto; padding: 0 10px;">Fill</button>
+        <button id="btn-open-ado" style="width: auto; padding: 0 10px;" title="Open Repository in New Tab">Open</button>
+      </div>
+      <input type="text" id="ado-org" placeholder="Organization" />
+      <input type="text" id="ado-project" placeholder="Project" />
+      <input type="text" id="ado-repo" placeholder="Repository Name" />
+      <input type="password" id="ado-pat" placeholder="Personal Access Token (PAT)" />
+      <div style="display: flex; gap: 5px; margin-top: 5px;">
+        <input type="text" id="git-user" placeholder="Git Username (Optional)" style="flex: 1;" />
+        <input type="text" id="git-email" placeholder="Git Email (Optional)" style="flex: 1;" />
+      </div>
+    </div>
+
+    <div class="section" id="backup-folder-config">
+      <h3>Backup Folder</h3>
+      <div style="display: flex; gap: 5px; margin-bottom: 10px; align-items: center;">
+        <div
+          style="flex: 1; padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+          id="backup-folder-display" title="Current backup folder path">
+          Not Selected (using Downloads)
+        </div>
+        <button id="btn-select-backup-folder" style="padding: 8px 12px; white-space: nowrap;">Select Folder</button>
+        <button id="btn-clear-backup-folder"
+          style="padding: 8px 12px; background: #6c757d; white-space: nowrap;">Clear</button>
+      </div>
+      <p style="margin: 0; font-size: 11px; color: #666;">
+        Select a folder to save backups automatically. If not selected, backups will download to your browser's default
+        location.
+      </p>
+    </div>
+
+    <div class="section" id="sync-config">
+      <h3>Sync Options</h3>
+      <input type="text" id="source-branch" placeholder="Source Branch (e.g. main)" value="main" />
+      <button id="btn-list-branches"
+        style="width: 100%; margin-bottom: 5px; font-size: 11px; background-color: #6c757d;">Show Available
+        Branches</button>
+      <input type="text" id="branch-name" placeholder="Target Branch Name" />
+      <input type="text" id="commit-message" placeholder="Commit Message (Optional)"
+        value="Salesforce Synced Changes" />
+      <input type="text" id="target-path-prefix" placeholder="Target Path Prefix (e.g. force-app/main/default)" />
+      <button id="btn-config-paths" style="width: 100%; margin-bottom: 8px; font-size: 12px;">Configure Paths by
+        Type</button>
+      <input type="text" id="test-file-path" placeholder="Test Class List Path (e.g. scripts/TestClassList.txt)" />
+      <textarea id="manual-test-classes" placeholder="Additional Test Classes (comma or newline separated)"
+        style="height: 60px; margin-top: 5px;"></textarea>
+    </div>
+
+    <!-- Mapping Modal Removed - Moved to mappings.html partial -->
+
+    <div class="section" id="package-xml">
+      <h3>Package.xml Setup</h3>
+      <input type="text" id="package-xml-path" list="package-paths" placeholder="Package.xml Path (select or type)"
+        value="manifest/package.xml" style="margin-bottom:5px;" />
+      <datalist id="package-paths">
+        <option value="manifest/package.xml">
+        <option value="package.xml">
+        <option value="src/package.xml">
+      </datalist>
+      <textarea id="package-xml-content" placeholder="Paste package.xml content here..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button id="btn-save">Save Config</button>
+      <button id="btn-sync" class="primary">Sync to ADO</button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script src="../lib/jszip.min.js"></script>
+  <script src="../lib/utils.js"></script>
+  <script src="../lib/salesforce.js"></script>
+  <script src="../lib/ado.js"></script>
+  <script src="popup.js"></script>
+</body>
+
+</html>

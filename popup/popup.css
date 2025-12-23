@@ -1,0 +1,136 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 400px;
+  padding: 10px;
+  background-color: #f4f4f4;
+}
+
+.container {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  margin-top: 0;
+  color: #0078d4;
+  text-align: center;
+}
+
+h3 {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.section {
+  margin-bottom: 15px;
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 13px;
+}
+
+textarea {
+  height: 80px;
+  resize: vertical;
+  font-family: monospace;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #e0e0e0;
+  color: #333;
+  font-weight: 600;
+}
+
+button:hover {
+  background-color: #d0d0d0;
+}
+
+button.primary {
+  background-color: #0078d4;
+  color: white;
+}
+
+button.primary:hover {
+  background-color: #0060a8;
+}
+
+.status {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+.error {
+  color: red;
+}
+
+.success {
+  color: green;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 15px;
+  border-radius: 5px;
+  width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+.mapping-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.mapping-label {
+  flex: 1;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.mapping-input {
+  flex: 2;
+  font-size: 11px;
+}

@@ -1,0 +1,14 @@
+# Exclude backup files
+*.zip
+
+# Exclude system files
+.DS_Store
+Thumbs.db
+
+# Exclude IDE files
+.vscode/
+.idea/
+
+# Exclude temporary files
+*.tmp
+*.log

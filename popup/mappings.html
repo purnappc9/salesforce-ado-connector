@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Path Mappings Config</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        input[type="text"] {
+            width: 95%;
+            padding: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .success {
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .info {
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Metadata Type to Folder Mapping</h2>
+    <div class="info">
+        Verify and update the folder names for each Salesforce Metadata Type.
+        These folders will be used inside your Target Path Prefix (e.g. <code>force-app/main/default/{Folder}</code>).
+    </div>
+
+    <table id="mapping-table">
+        <thead>
+            <tr>
+                <th>Metadata Type</th>
+                <th>Target Folder Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Populated by JS -->
+        </tbody>
+    </table>
+
+    <button id="btn-save">Save Mappings</button>
+    <div id="status"></div>
+
+    <script src="../lib/utils.js"></script>
+    <script src="mappings.js"></script>
+</body>
+
+</html>
