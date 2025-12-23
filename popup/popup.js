@@ -227,6 +227,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Update Helper
+    document.getElementById('btn-update-helper').addEventListener('click', () => {
+        const instructions = document.getElementById('update-instructions');
+        instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.getElementById('btn-open-github').addEventListener('click', () => {
+        chrome.tabs.create({ url: 'https://github.com/purnappc9/salesforce-ado-connector' });
+    });
+
     // List Branches Logic
     document.getElementById('btn-list-branches').addEventListener('click', async () => {
         const config = {

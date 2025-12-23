@@ -63,6 +63,24 @@
             color: #666;
             margin-bottom: 20px;
         }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .custom-type {
+            background-color: #fff3cd;
+        }
     </style>
 </head>
 
@@ -78,12 +96,36 @@
             <tr>
                 <th>Metadata Type</th>
                 <th>Target Folder Name</th>
+                <th style="width: 100px;">Actions</th>
             </tr>
         </thead>
         <tbody>
             <!-- Populated by JS -->
         </tbody>
     </table>
+
+    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 4px; border: 2px dashed #007bff;">
+        <h3 style="margin-top: 0;">Add Custom Metadata Type</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Metadata Type Name:</label>
+                <input type="text" id="custom-type-name" placeholder="e.g., CustomObject"
+                    style="width: 100%; padding: 8px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Folder Path:</label>
+                <input type="text" id="custom-type-folder" placeholder="e.g., objects"
+                    style="width: 100%; padding: 8px;">
+            </div>
+            <div>
+                <button id="btn-add-custom" style="margin: 0; background: #28a745;">Add Type</button>
+            </div>
+        </div>
+        <div style="margin-top: 10px; font-size: 12px; color: #666;">
+            Add custom metadata types not in the default list. Added types will appear in the table above with a delete
+            option.
+        </div>
+    </div>
 
     <button id="btn-save">Save Mappings</button>
     <div id="status"></div>
