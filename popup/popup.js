@@ -237,6 +237,120 @@ document.addEventListener('DOMContentLoaded', async () => {
         chrome.tabs.create({ url: 'https://github.com/purnappc9/salesforce-ado-connector' });
     });
 
+    // Package.xml Templates
+    const packageTemplates = {
+        'all-apex': `<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>*</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>ApexTrigger</name>
+    </types>
+    <version>60.0</version>
+</Package>`,
+
+        'custom-objects': `<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>*</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>ValidationRule</name>
+    </types>
+    <version>60.0</version>
+</Package>`,
+
+        'lwc-aura': `<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>*</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>AuraDefinitionBundle</name>
+    </types>
+    <version>60.0</version>
+</Package>`,
+
+        'full-metadata': `<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>*</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>ApexTrigger</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>AuraDefinitionBundle</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>Flow</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>Profile</name>
+    </types>
+    <version>60.0</version>
+</Package>`,
+
+        'profiles-permissions': `<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>*</members>
+        <name>Profile</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>*</members>
+        <name>PermissionSetGroup</name>
+    </types>
+    <version>60.0</version>
+</Package>`
+    };
+
+    document.getElementById('btn-load-template').addEventListener('click', () => {
+        const selector = document.getElementById('package-template-selector');
+        const templateKey = selector.value;
+
+        if (!templateKey) {
+            updateStatus('Please select a template first', 'error');
+            return;
+        }
+
+        const content = packageTemplates[templateKey];
+        document.getElementById('package-xml-content').value = content;
+        updateStatus(`Loaded template: ${selector.options[selector.selectedIndex].text}`, 'success');
+    });
+
     // List Branches Logic
     document.getElementById('btn-list-branches').addEventListener('click', async () => {
         const config = {

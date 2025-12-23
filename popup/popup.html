@@ -81,6 +81,21 @@
 
     <div class="section" id="package-xml">
       <h3>Package.xml Setup</h3>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+        <div style="flex: 1;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Load Template:</label>
+          <select id="package-template-selector" style="width: 100%; padding: 8px;">
+            <option value="">-- Select a Template --</option>
+            <option value="all-apex">All Apex (Classes + Triggers)</option>
+            <option value="custom-objects">Custom Objects</option>
+            <option value="lwc-aura">LWC & Aura Components</option>
+            <option value="full-metadata">Full Metadata (All Types)</option>
+            <option value="profiles-permissions">Profiles & Permission Sets</option>
+          </select>
+        </div>
+        <button id="btn-load-template" style="padding: 8px 15px; align-self: flex-end; background: #6c757d;">Load
+          Template</button>
+      </div>
       <input type="text" id="package-xml-path" list="package-paths" placeholder="Package.xml Path (select or type)"
         value="manifest/package.xml" style="margin-bottom:5px;" />
       <datalist id="package-paths">
