@@ -658,8 +658,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                             }
                         }
 
+                        // Extract instance name from serverUrl (e.g., "https://mydomain.my.salesforce.com" -> "mydomain")
+                        let instanceName = 'unknown-instance';
+                        try {
+                            const urlObj = new URL(serverUrl);
+                            const hostname = urlObj.hostname; // e.g., "mydomain.my.salesforce.com"
+                            instanceName = hostname.split('.')[0]; // "mydomain"
+                        } catch (urlError) {
+                            console.error('Error parsing instance name:', urlError);
+                        }
+
+                        // Create or get instance subfolder
+                        let instanceFolderHandle;
+                        try {
+                            instanceFolderHandle = await backupFolderHandle.getDirectoryHandle(instanceName, { create: true });
+                            console.log(`Using instance folder: ${instanceName}`);
+                        } catch (folderError) {
+                            console.error('Could not create instance folder, using root:', folderError);
+                            instanceFolderHandle = backupFolderHandle; // Fallback to root
+                        }
+
                         // Create file and write data
-                        const fileHandle = await backupFolderHandle.getFileHandle(filename, { create: true });
+                        const fileHandle = await instanceFolderHandle.getFileHandle(filename, { create: true });
                         const writable = await fileHandle.createWritable();
 
                         // Convert base64 to blob
@@ -673,7 +693,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         await writable.write(blob);
                         await writable.close();
 
-                        updateStatus(`Backup saved to: ${backupFolderHandle.name}/${filename}`, 'success');
+                        updateStatus(`Backup saved to: ${backupFolderHandle.name}/${instanceName}/${filename}`, 'success');
                     } catch (folderError) {
                         console.error('Error saving to folder:', folderError);
                         updateStatus('Failed to save to folder, using download instead...', 'warning');
