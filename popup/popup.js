@@ -605,11 +605,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (isFullPage) {
                 const stored = await chrome.storage.local.get(['sfContext']);
                 if (stored.sfContext) {
-                    const domain = stored.sfContext.serverUrl.replace('https://', '').replace('/', '');
-                    const session = await Salesforce.getSession(domain);
-                    serverUrl = session.serverUrl;
-                    sessionId = session.sessionId;
+                    // Use stored session directly instead of re-fetching
+                    serverUrl = stored.sfContext.serverUrl;
+                    sessionId = stored.sfContext.sessionId;
+                    console.log('Using stored session:', serverUrl);
                 } else {
+                    // No stored session, try to get from current tab
                     const session = await Salesforce.getSession();
                     serverUrl = session.serverUrl;
                     sessionId = session.sessionId;
