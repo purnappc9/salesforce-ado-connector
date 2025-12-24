@@ -33,9 +33,13 @@
         <button id="btn-open-ado" style="width: auto; padding: 0 10px;" title="Open Repository in New Tab">Open</button>
       </div>
       <input type="text" id="ado-org" placeholder="Organization" />
-      <input type="text" id="ado-project" placeholder="Project" />
+      <input type="text" id="ado-project" placeholder="Project Name" />
       <input type="text" id="ado-repo" placeholder="Repository Name" />
-      <input type="password" id="ado-pat" placeholder="Personal Access Token (PAT)" />
+      <div style="display: flex; gap: 5px;">
+        <input type="password" id="ado-pat" placeholder="Personal Access Token (PAT)" style="flex: 1;" />
+        <button id="btn-copy-pat" style="padding: 8px 12px; background: #6c757d;" title="Copy PAT to clipboard">📋
+          Copy</button>
+      </div>
       <div style="display: flex; gap: 5px; margin-top: 5px;">
         <input type="text" id="git-user" placeholder="Git Username (Optional)" style="flex: 1;" />
         <input type="text" id="git-email" placeholder="Git Email (Optional)" style="flex: 1;" />

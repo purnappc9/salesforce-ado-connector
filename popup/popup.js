@@ -182,6 +182,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // Copy PAT to Clipboard
+    document.getElementById('btn-copy-pat').addEventListener('click', async () => {
+        const pat = document.getElementById('ado-pat').value;
+        if (!pat) {
+            updateStatus('No PAT to copy!', 'error');
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(pat);
+            const btn = document.getElementById('btn-copy-pat');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            btn.style.background = '#28a745';
+
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '#6c757d';
+            }, 2000);
+
+            updateStatus('PAT copied to clipboard!', 'success');
+        } catch (e) {
+            updateStatus('Failed to copy PAT: ' + e.message, 'error');
+        }
+    });
+
     // Open Config in New Tab
     document.getElementById('btn-config-paths').addEventListener('click', () => {
         chrome.tabs.create({ url: chrome.runtime.getURL('popup/mappings.html') });
