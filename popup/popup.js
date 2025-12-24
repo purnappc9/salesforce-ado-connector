@@ -790,8 +790,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateStatus('Preparing changes...');
 
             const changes = [];
+            updateStatus('Step 5: Building Changes...');
+
+            // Use saved mappings, fallback to defaults
+            const effectiveMappings = { ...Utils.TYPE_TO_FOLDER, ...typeMappings };
             const FOLDER_TO_TYPE = {};
-            for (const [t, f] of Object.entries(Utils.TYPE_TO_FOLDER)) {
+            for (const [t, f] of Object.entries(effectiveMappings)) {
                 FOLDER_TO_TYPE[f] = t;
             }
 
