@@ -490,6 +490,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         await updateStatus('Configuration saved!', 'success');
     });
 
+    // Auto-Save Reminder Interval
+    document.getElementById('reminder-interval').addEventListener('change', async () => {
+        await saveConfigToStorage();
+        console.log('Reminder interval auto-saved');
+        // Optional: show a small toast or just log? 
+        // User asked "nothing breaks", so seamless is better. 
+        // But feedback is good. I'll use a very subtle log or existing status if it's not spammy.
+        // Actually, let's not spam the main status line for this minor change.
+    });
+
     // Copy PAT to Clipboard
     document.getElementById('btn-copy-pat').addEventListener('click', async () => {
         const pat = document.getElementById('ado-pat').value;
@@ -536,27 +546,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Dashboard Button Logic
     document.getElementById('btn-dashboard').addEventListener('click', () => {
-        if (isFullPage) {
-            // Uncheck "Show Logs" (Wait? No, we WANT to show the right panel)
-            if (!chkShowLogs.checked) {
-                chkShowLogs.checked = true;
-                handleLogVisibility();
-            }
-            switchRightPanelTab('dashboard');
-        } else {
-            // Pass sessionKey if we have one
-            const params = new URLSearchParams();
-            params.set('fullpage', 'true');
-            if (currentSfContext && !currentSfContext.sessionId.startsWith('00D')) {
-                // Do we have the key? currentSfContext doesn't store the key... 
-                // We should grab it from URL if present.
-                const currentKey = new URLSearchParams(window.location.search).get('sessionKey');
-                if (currentKey) params.set('sessionKey', currentKey);
-            }
-            // Just open full page, it defaults to logs but user can switch. 
-            // Better: Add &tab=dashboard support later? For now, just open.
-            chrome.tabs.create({ url: chrome.runtime.getURL('popup/popup.html?' + params.toString()) });
-        }
+        chrome.tabs.create({ url: chrome.runtime.getURL('popup/dashboard.html') });
     });
 
     // View Logs Button Logic (Popup Mode Only)
