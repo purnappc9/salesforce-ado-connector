@@ -1508,6 +1508,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Listen for cancel requests from Dashboard (iframe)
     window.addEventListener('message', (event) => {
+        // Security Check: Ensure message is from this extension
+        if (event.origin !== window.location.origin) return;
+
         if (event.data && event.data.type === 'CANCEL_JOB') {
             console.log('Received cancel request from Dashboard for job:', event.data.jobId);
             cancelOperation();

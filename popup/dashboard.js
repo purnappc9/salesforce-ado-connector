@@ -28,6 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+
+// Escape HTML Helper
+const escapeHtml = (unsafe) => {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+};
+
 async function exportHistoryToCSV(deleteAfter) {
     const result = await chrome.storage.local.get(['jobHistory']);
     const jobs = result.jobHistory || [];
@@ -112,6 +124,17 @@ async function loadJobs() {
     // Sort by Date Descending
     jobs.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
 
+    // Escape HTML Helper
+    const escapeHtml = (unsafe) => {
+        if (!unsafe) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
     jobs.forEach((job, index) => {
         const tr = document.createElement('tr');
 
@@ -136,16 +159,16 @@ async function loadJobs() {
         }
 
         const cancelButton = job.status === 'running'
-            ? `<button class="btn btn-danger btn-sm btn-cancel-job" data-id="${job.id}" style="margin-right: 5px;">&#128721; Cancel</button>`
+            ? `<button class="btn btn-danger btn-sm btn-cancel-job" data-id="${escapeHtml(job.id)}" style="margin-right: 5px;">&#128721; Cancel</button>`
             : '';
 
         tr.innerHTML = `
-            <td class="${statusClass}">${icon} ${job.status.toUpperCase()}</td>
+            <td class="${statusClass}">${icon} ${escapeHtml(job.status.toUpperCase())}</td>
             <td>${timeStr}</td>
-            <td>${job.sfOrg || job.org || '-'}</td>
-            <td>${job.branch || '-'}</td>
+            <td>${escapeHtml(job.sfOrg || job.org || '-')}</td>
+            <td>${escapeHtml(job.branch || '-')}</td>
             <td>${duration}</td>
-            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${job.message || ''}">${job.message || '-'}</td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(job.message)}">${escapeHtml(job.message || '-')}</td>
             <td>
                 ${cancelButton}
                 <button class="btn btn-primary btn-sm" data-index="${index}">&#128269; Details</button>
@@ -170,7 +193,7 @@ async function loadJobs() {
             if (confirm('Are you sure you want to stop this sync?')) {
                 const jobId = e.target.getAttribute('data-id');
                 // Send message to parent (popup.js)
-                window.parent.postMessage({ type: 'CANCEL_JOB', jobId: jobId }, '*');
+                window.parent.postMessage({ type: 'CANCEL_JOB', jobId: jobId }, window.location.origin);
             }
         });
     });
@@ -190,11 +213,11 @@ function openJobDetails(job) {
     if (summaryDiv) {
         summaryDiv.innerHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
-                <div><strong>Status:</strong> <span class="${job.status === 'failed' ? 'status-failed' : 'status-success'}">${job.status.toUpperCase()}</span></div>
+                <div><strong>Status:</strong> <span class="${job.status === 'failed' ? 'status-failed' : 'status-success'}">${escapeHtml(job.status.toUpperCase())}</span></div>
                 <div><strong>Time:</strong> ${new Date(job.startTime).toLocaleString()}</div>
-                <div><strong>Salesforce Org:</strong> <a href="${job.sfOrg || '#'}" target="_blank">${job.sfOrg || 'N/A'}</a></div>
-                <div><strong>ADO Branch:</strong> ${job.branch || 'N/A'}</div>
-                <div style="grid-column: span 2;"><strong>Test Classes:</strong> <span style="font-family: monospace; background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">${job.testClasses || 'None'}</span></div>
+                <div><strong>Salesforce Org:</strong> <a href="${escapeHtml(job.sfOrg) || '#'}" target="_blank">${escapeHtml(job.sfOrg || 'N/A')}</a></div>
+                <div><strong>ADO Branch:</strong> ${escapeHtml(job.branch || 'N/A')}</div>
+                <div style="grid-column: span 2;"><strong>Test Classes:</strong> <span style="font-family: monospace; background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">${escapeHtml(job.testClasses || 'None')}</span></div>
             </div>
         `;
     }
