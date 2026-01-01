@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sync Logs - SF to ADO</title>
+    <link rel="stylesheet" href="logs.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Sync Operation Logs</h1>
+            <div class="status-bar">
+                <div class="status-badge" id="status-badge">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-text">Idle</span>
+                    <span id="status-detail"
+                        style="margin-left: 10px; font-weight: normal; color: #666; font-size: 0.9em;"></span>
+                </div>
+                <div class="timer">
+                    <span>⏱️ Elapsed:</span>
+                    <span id="elapsed-time">00:00:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <div class="filter-group">
+                <label>Filter:</label>
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="ERROR">Errors</button>
+                <button class="filter-btn" data-filter="WARNING">Warnings</button>
+                <button class="filter-btn" data-filter="SUCCESS">Success</button>
+                <button class="filter-btn" data-filter="INFO">Info</button>
+            </div>
+            <div class="action-group">
+                <label>
+                    <input type="checkbox" id="auto-scroll" checked>
+                    Auto-scroll
+                </label>
+                <button id="btn-copy" class="action-btn">📋 Copy Logs</button>
+                <button id="btn-clear" class="action-btn">🗑️ Clear</button>
+                <button id="btn-refresh" class="action-btn">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div class="logs-container" id="logs-container">
+            <div class="empty-state" id="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>No logs yet</p>
+                <small>Logs will appear here when you start a sync operation</small>
+            </div>
+            <div id="logs-content" style="display: none;"></div>
+        </div>
+
+        <footer>
+            <div class="log-count">
+                Showing <span id="visible-count">0</span> of <span id="total-count">0</span> logs
+            </div>
+            <div class="footer-info">
+                Session ID: <span id="session-id">N/A</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="../lib/logger.js"></script>
+    <script src="logs.js"></script>
+</body>
+
+</html>

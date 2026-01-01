@@ -68,72 +68,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
-    // --- MULTI-INSTANCE STATE ---
-    // Instead of relying on global 'sfContext', we use a specific context for this window if provided.
-    let currentSfContext = null;
-
-    // 1. LAUNCHER LOGIC (Popup Mode)
-    // If not full page, check active tab. If Salesforce, open NEW Full Page with that session.
-    if (!isFullPage) {
-        try {
+    // --- PRIORITY: Check Active Tab for Salesforce Context ---
+    // If user is on a Salesforce tab, we want to default to THAT org.
+    try {
+        if (!isFullPage) { // Only do this in popup mode to avoid recursion in full page
             const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (activeTab && activeTab.url) {
                 const url = new URL(activeTab.url);
                 if (url.hostname.includes('salesforce.com') || url.hostname.includes('force.com')) {
-                    console.log('Launcher: Detected Salesforce tab:', url.hostname);
+                    console.log('Active tab is Salesforce. Attempting to match session...', url.hostname);
                     try {
+                        // Use the shared helper to get session for this specific domain
+                        // This updates chrome.storage.local.sfContext automatically if successful
+                        // We do not await this blocking the UI, but we let it race or run
                         const session = await Salesforce.getSession(url.hostname);
-
-                        // Create Unique Session Key
-                        const sessionKey = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-                        // Save session specific to this ID
-                        await chrome.storage.local.set({ [sessionKey]: session });
-
-                        // Launch Full Page with Key
-                        chrome.tabs.create({
-                            url: chrome.runtime.getURL(`popup/popup.html?fullpage=true&sessionKey=${sessionKey}`)
-                        });
-
-                        // Close this popup (Launcher done)
-                        window.close();
-                        return; // Stop execution
+                        await chrome.storage.local.set({ sfContext: session });
+                        console.log('Context switched to active tab:', session.serverUrl);
+                        await updateOrgBadge(session.serverUrl, session.sessionId);
+                        // UI will be updated via the usual flow below (loading savedConfig logic or explicit update)
                     } catch (e) {
-                        console.warn('Launcher: Could not capture session for active tab:', e);
-                        // Fallthrough to normal popup behavior (e.g. show disconnected or generic)
+                        console.warn('Could not auto-connect to active tab:', e);
+                        // CRITICAL: If we are ON a Salesforce tab but can't get a session, 
+                        // we must CLEAR the old context so we don't show a misleading "Connected" state 
+                        // for a different org.
+                        await chrome.storage.local.remove('sfContext');
+                        const badge = document.getElementById('org-badge');
+                        if (badge) badge.style.display = 'none';
                     }
                 }
             }
-        } catch (e) {
-            console.error('Launcher Error:', e);
         }
-    }
-
-    // 2. STANDALONE LOGIC (Full Page Mode)
-    // Check if we were opened with a specific session key
-    const sessionKey = urlParams.get('sessionKey');
-    if (sessionKey) {
-        const stored = await chrome.storage.local.get([sessionKey]);
-        if (stored[sessionKey]) {
-            currentSfContext = stored[sessionKey];
-            console.log('Standalone: Loaded independent session:', currentSfContext.serverUrl);
-            // Update Global Fallback (Optional, but keeps legacy "last active" working)
-            await chrome.storage.local.set({ sfContext: currentSfContext });
-        }
-    }
-
-    // Fallback: If no key (or load failed), try global 'sfContext' (Legacy / Default)
-    if (!currentSfContext) {
-        const stored = await chrome.storage.local.get(['sfContext']);
-        if (stored.sfContext) {
-            currentSfContext = stored.sfContext;
-            console.log('Loaded global context fallback:', currentSfContext.serverUrl);
-        }
-    }
-
-    // Update Badge Immediate
-    if (currentSfContext) {
-        await updateOrgBadge(currentSfContext.serverUrl, currentSfContext.sessionId);
+    } catch (e) {
+        console.error('Error checking active tab:', e);
     }
 
     // Load saved settings
@@ -174,8 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isFullPage) {
             // Full Page: Toggle Right Panel
             if (chkShowLogs.checked) {
-                // Use FLEX for the container to support the column layout
-                rightPanel.style.display = 'flex';
+                rightPanel.style.display = 'block';
                 document.body.classList.add('logs-visible');
             } else {
                 rightPanel.style.display = 'none';
@@ -185,6 +150,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             btnViewLogs.style.display = 'none';
         } else {
             // Popup Mode: Checkbox toggles "View Logs" BUTTON visibility
+
+            // CLEANUP: Reset any styles from previous experiments
             document.body.style.width = '400px';
             document.body.style.display = 'block';
             document.body.style.height = '';
@@ -209,51 +176,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Apply Initial State
     handleLogVisibility();
 
-
-    // --- RIGHT PANEL TABS LOGIC ---
-    const tabLogs = document.getElementById('tab-logs');
-    const tabDash = document.getElementById('tab-dashboard');
-    const frameLogs = document.getElementById('logs-frame');
-    const frameDash = document.getElementById('dashboard-frame');
-
-    function switchRightPanelTab(tab) {
-        if (tab === 'dashboard') {
-            tabDash.classList.add('active');
-            tabDash.style.borderTop = '2px solid #007bff';
-            tabDash.style.background = 'white';
-            tabDash.style.color = '#000';
-
-            tabLogs.classList.remove('active');
-            tabLogs.style.borderTop = '2px solid transparent';
-            tabLogs.style.background = 'transparent';
-            tabLogs.style.color = '#666';
-
-            frameDash.style.display = 'block';
-            frameLogs.style.display = 'none';
-        } else {
-            tabLogs.classList.add('active');
-            tabLogs.style.borderTop = '2px solid #007bff';
-            tabLogs.style.background = 'white';
-            tabLogs.style.color = '#000';
-
-            tabDash.classList.remove('active');
-            tabDash.style.borderTop = '2px solid transparent';
-            tabDash.style.background = 'transparent';
-            tabDash.style.color = '#666';
-
-            frameLogs.style.display = 'block';
-            frameDash.style.display = 'none';
-        }
-    }
-
-    if (tabLogs && tabDash) {
-        tabLogs.addEventListener('click', () => switchRightPanelTab('logs'));
-        tabDash.addEventListener('click', () => switchRightPanelTab('dashboard'));
-    }
-
-    // Event Listener for Logs Toggle
+    // Event Listener
     chkShowLogs.addEventListener('change', () => {
         handleLogVisibility();
+        // Save config immediately so preference persists
+        // saveConfigToStorage(); // Optional, usage depends on user preference
     });
 
     if (savedConfig.typeMappings) typeMappings = savedConfig.typeMappings;
@@ -290,13 +217,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const badge = document.getElementById('org-badge');
         if (!badge) return;
 
-        // Clean domain name for fallback (e.g., "my-org.my.salesforce.com" -> "my-org")
-        let fallbackName = serverUrl.replace('https://', '').replace('http://', '').split('.')[0];
-        if (fallbackName === 'www' || fallbackName === 'test' || fallbackName === 'login') {
-            // Try next part if generic
-            fallbackName = serverUrl.replace('https://', '').replace('http://', '').split('.')[1] || 'Salesforce';
-        }
-
         // check if we have a saved name?
         const stored = await chrome.storage.local.get(['sfContext']);
         if (stored.sfContext && stored.sfContext.orgName && stored.sfContext.serverUrl === serverUrl) {
@@ -305,25 +225,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Show fallback initially while loading
-        badge.textContent = fallbackName;
-        badge.style.display = 'inline-block';
-
         try {
             const orgInfo = await Salesforce.fetchOrgInfo(serverUrl, sessionId);
             if (orgInfo) {
                 badge.textContent = orgInfo.Name;
+                badge.style.display = 'inline-block';
 
                 // Save it back to context so we don't query every time
                 if (stored.sfContext) {
                     stored.sfContext.orgName = orgInfo.Name;
                     await chrome.storage.local.set({ sfContext: stored.sfContext });
-                    console.log('Org Name updated and saved:', orgInfo.Name);
                 }
+            } else {
+                badge.style.display = 'none';
             }
         } catch (e) {
-            console.warn('Failed to update org badge (keeping fallback):', e);
-            // Keep the fallback name visible
+            console.warn('Failed to update org badge:', e);
+            badge.style.display = 'none';
         }
     }
 
@@ -347,7 +265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (history.length > 50) history.shift();
             await chrome.storage.local.set({ jobHistory: history });
         },
-        updateLastJob: async (status, message, endTime = null, updates = {}) => {
+        updateLastJob: async (status, message, endTime = null) => {
             const data = await chrome.storage.local.get(['jobHistory']);
             const history = data.jobHistory || [];
             if (history.length > 0) {
@@ -355,9 +273,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 lastJob.status = status;
                 lastJob.message = message;
                 if (endTime) lastJob.endTime = endTime;
-
-                // Apply extra updates (e.g. sfOrg, testClasses)
-                Object.assign(lastJob, updates);
 
                 // DATA ENRICHMENT: Store Logs & Logs
                 try {
@@ -536,37 +451,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Dashboard Button Logic
     document.getElementById('btn-dashboard').addEventListener('click', () => {
-        if (isFullPage) {
-            // Uncheck "Show Logs" (Wait? No, we WANT to show the right panel)
-            if (!chkShowLogs.checked) {
-                chkShowLogs.checked = true;
-                handleLogVisibility();
-            }
-            switchRightPanelTab('dashboard');
-        } else {
-            // Pass sessionKey if we have one
-            const params = new URLSearchParams();
-            params.set('fullpage', 'true');
-            if (currentSfContext && !currentSfContext.sessionId.startsWith('00D')) {
-                // Do we have the key? currentSfContext doesn't store the key... 
-                // We should grab it from URL if present.
-                const currentKey = new URLSearchParams(window.location.search).get('sessionKey');
-                if (currentKey) params.set('sessionKey', currentKey);
-            }
-            // Just open full page, it defaults to logs but user can switch. 
-            // Better: Add &tab=dashboard support later? For now, just open.
-            chrome.tabs.create({ url: chrome.runtime.getURL('popup/popup.html?' + params.toString()) });
-        }
-    });
-
-    // View Logs Button Logic (Popup Mode Only)
-    document.getElementById('btn-view-logs').addEventListener('click', () => {
-        const params = new URLSearchParams();
-        params.set('fullpage', 'true');
-        const currentKey = new URLSearchParams(window.location.search).get('sessionKey');
-        if (currentKey) params.set('sessionKey', currentKey);
-
-        chrome.tabs.create({ url: chrome.runtime.getURL('popup/popup.html?' + params.toString()) });
+        chrome.tabs.create({ url: chrome.runtime.getURL('popup/dashboard.html') });
     });
 
     // Open Config in New Tab
@@ -893,13 +778,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 await chrome.storage.local.remove('sfContext');
 
-                // Also clean up specific session key if exists (will be re-saved by connectToOrg)
-                const urlParams = new URLSearchParams(window.location.search);
-                const thisSessionKey = urlParams.get('sessionKey');
-                if (thisSessionKey) {
-                    await chrome.storage.local.remove(thisSessionKey);
-                }
-
                 // 1. Check Active Tab First (Priority)
                 const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
                 if (activeTab && activeTab.url) {
@@ -928,16 +806,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
 
                 // LOGIC FLOW:
-                // A. Active Tab Priority is handled in Step 1 (returns immediately if matched).
+                // A. If Active Tab is SF, use it immediately (User Intent is clear).
+                if (activeOrgDomain) {
+                    await connectToOrg(activeOrgDomain);
+                    return;
+                }
 
                 // B. If No SF tabs open
                 if (validTabs.length === 0) {
                     throw new Error("No open Salesforce tabs found. Please open your Org in a new tab.");
                 }
 
-                // C. If Only 1 SF tab open AND NOT Full Page, use it.
-                // In Full Page Mode, we ALWAYS show the list so user can confirm which one.
-                if (validTabs.length === 1 && !isFullPage) {
+                // C. If Only 1 SF tab open (and we are in Full Page mode), use it.
+                if (validTabs.length === 1) {
                     await connectToOrg(validTabs[0].domain);
                     return;
                 }
@@ -982,22 +863,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateStatus(`Connecting to ${domain}...`);
         try {
             const session = await Salesforce.getSession(domain);
-
-            // 1. Update Global Context (Fallback)
             await chrome.storage.local.set({ sfContext: session });
-
-            // 2. Update Specific Instance Context (Multi-Instance Support)
-            // Use the key captured from URL if available
-            const urlParams = new URLSearchParams(window.location.search);
-            const thisSessionKey = urlParams.get('sessionKey');
-            if (thisSessionKey) {
-                await chrome.storage.local.set({ [thisSessionKey]: session });
-                console.log('Standalone: Updated isolated session:', thisSessionKey);
-            }
-
-            // 3. Update Memory State
-            currentSfContext = session;
-
             await updateOrgBadge(session.serverUrl, session.sessionId);
 
             // Auto-fill Identity
@@ -1074,7 +940,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             org: document.getElementById('ado-org').value,
             branch: document.getElementById('branch-name').value,
             packageXml: document.getElementById('package-xml-content').value,
-            testClasses: document.getElementById('manual-test-classes').value || document.getElementById('test-file-path').value,
             message: 'Starting sync...'
         });
 
@@ -1115,11 +980,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateStatus('Step 1: Connecting to Salesforce...');
             let serverUrl, sessionId;
 
-            if (currentSfContext) {
-                serverUrl = currentSfContext.serverUrl;
-                sessionId = currentSfContext.sessionId;
-            } else if (isFullPage) {
-                // Legacy / Fallback for direct opens without session key
+            if (isFullPage) {
                 const stored = await chrome.storage.local.get(['sfContext']);
                 if (stored.sfContext) {
                     serverUrl = stored.sfContext.serverUrl;
@@ -1130,27 +991,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     sessionId = session.sessionId;
                 }
             } else {
-                // Popup mode - try active tab or stored
                 const session = await Salesforce.getSession();
                 serverUrl = session.serverUrl;
                 sessionId = session.sessionId;
             }
 
             updateStatus('Connected to Salesforce.');
-
-            // Enrich Job History with SF Org
-            await JobManager.updateLastJob('running', 'Connected to Salesforce.', null, { sfOrg: serverUrl });
-
             updateStatus('Step 2: Retrieving Metadata...');
-            let asyncId;
-            try {
-                // Debug log
-                console.log(`Debug Sync: URL=${serverUrl}, SessionID_Length=${sessionId ? sessionId.length : 0}`);
-                asyncId = await Salesforce.retrieve(serverUrl, sessionId, packageXml);
-            } catch (retrieveErr) {
-                console.error("Retrieve Call Failed Breakdown:", retrieveErr);
-                throw new Error(`Retrieve Call Failed: ${retrieveErr.message} (URL: ${serverUrl})`);
-            }
+            const asyncId = await Salesforce.retrieve(serverUrl, sessionId, packageXml);
             updateStatus(`Retrieve started (ID: ${asyncId}). Wait...`);
 
             // Poll for status
@@ -1501,26 +1349,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Cancel Button and Message Logic
+    // Cancel Button Logic
     let abortController = null;
-
-    const cancelOperation = () => {
+    document.getElementById('btn-cancel-sync').addEventListener('click', () => {
         if (abortController) {
             abortController.abort();
             updateStatus('Cancelling operation...', 'warning');
-
-            // Just in case it's stuck in a non-abortable wait, we try to force UI reset via the catch/finally block in the sync function which catches the AbortError.
-            // But if the sync function isn't running, this does nothing, which is fine.
-        }
-    };
-
-    document.getElementById('btn-cancel-sync').addEventListener('click', cancelOperation);
-
-    // Listen for cancel requests from Dashboard (iframe)
-    window.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'CANCEL_JOB') {
-            console.log('Received cancel request from Dashboard for job:', event.data.jobId);
-            cancelOperation();
         }
     });
 

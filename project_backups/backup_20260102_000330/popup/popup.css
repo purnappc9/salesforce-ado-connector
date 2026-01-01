@@ -36,8 +36,6 @@ body.full-page #left-panel {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  padding-bottom: 40px;
-  /* Prevent footer cut-off */
 }
 
 body.full-page #right-panel {
@@ -53,6 +51,19 @@ body.full-page #right-panel {
   display: none;
   /* Hidden by default, JS toggles */
 }
+
+/* When logs are visible, left panel stays fixed, right takes space */
+body.logs-visible #left-panel {
+  /* No change needed, flex: 0 0 450px holds it */
+}
+
+body.logs-visible #right-panel {
+  display: block !important;
+}
+
+/* If logs hidden, left panel is centered? User said 'keep it blank', 
+   so maybe we just keep left panel centered or let it be alone. 
+   'justify-content: center' on body handles centering when right-panel is display:none */
 
 .container {
   background-color: #fff;
@@ -182,34 +193,25 @@ button.primary:hover {
 .mapping-input {
   flex: 2;
   font-size: 11px;
-}
-
-@
-
+}@
 /* Org Badge */
 .org-badge {
-  background-color: #e3f2fd;
-  color: #0d47a1;
-  border: 1px solid #90caf9;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: default;
-  display: inline-block;
-  vertical-align: middle;
-  animation: fadeIn 0.3s ease-in;
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    border: 1px solid #90caf9;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: default;
+    display: inline-block;
+    vertical-align: middle;
+    animation: fadeIn 0.3s ease-in;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
-
 @

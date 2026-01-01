@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Salesforce Sync Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Sync Job History</h1>
+        <div style="display: flex; gap: 10px;">
+            <button id="btn-export-csv" class="btn btn-success">&#128194; Export CSV</button>
+            <button id="btn-export-delete" class="btn btn-info">&#128190; Export & Delete</button>
+            <button id="btn-clear-history" class="btn btn-danger">&#128465; Clear</button>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Time</th>
+                <th>Org</th>
+                <th>Branch</th>
+                <th>Duration</th>
+                <th>Message</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="job-list">
+            <!-- Jobs will be inserted here -->
+        </tbody>
+    </table>
+    <div id="empty-state" class="empty-state" style="display: none;">No executed jobs found.</div>
+
+    <!-- Job Details Modal -->
+    <div id="job-details-modal" class="modal-overlay">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <h2 class="modal-title">Job Details</h2>
+                <button id="btn-close-modal" class="btn-close">&times;</button>
+            </div>
+
+            <!-- Content -->
+            <div class="modal-body">
+
+                <!-- Job Summary Info -->
+                <div id="job-summary-info"
+                    style="padding: 15px 20px; background: #fff; border-bottom: 1px solid #dee2e6; margin-bottom: 0;">
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="tab-logs">Logs</button>
+                    <button class="tab-btn" data-tab="tab-package">Package.xml</button>
+                </div>
+
+                <!-- Log Tab -->
+                <div id="tab-logs" class="tab-content active" style="display: block;"></div>
+
+                <!-- Package Tab -->
+                <div id="tab-package" class="tab-content"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+
+</html>

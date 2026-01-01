@@ -17,39 +17,29 @@ const Salesforce = {
                 }
 
                 let sfCookie;
-
-                // STRATEGY: Find the best "API-capable" domain (my.salesforce.com)
-                // 1. Identify the 'Org Subdomain'
-                let orgSubdomain = null;
                 if (targetDomain) {
-                    // Handle: carmeuse--evokedev1.sandbox.lightning.force.com -> carmeuse--evokedev1.sandbox
-                    // Handle: myorg.my.salesforce.com -> myorg
-                    const clean = targetDomain.replace('https://', '').replace('http://', '');
-                    if (clean.includes('.lightning.force.com')) {
-                        orgSubdomain = clean.split('.lightning.force.com')[0];
-                    } else if (clean.includes('.my.salesforce.com')) {
-                        orgSubdomain = clean.split('.my.salesforce.com')[0];
-                    } else if (clean.includes('.salesforce.com')) {
-                        orgSubdomain = clean.split('.salesforce.com')[0];
-                    }
-                }
+                    if (Salesforce.DEBUG) console.log(`DEBUG: Target Domain: ${targetDomain}`);
+                    // Smart Matching for Lightning vs Classic vs MyDomain
+                    // targetDomain might be "my-org.lightning.force.com"
+                    // cookie domain might be "my-org.my.salesforce.com"
 
-                // 2. Search for the "Golden Cookie" (matches subdomain + my.salesforce.com)
-                if (orgSubdomain) {
-                    sfCookie = cookies.find(c => c.domain.includes(orgSubdomain) && c.domain.includes('my.salesforce.com'));
-                    if (!sfCookie) {
-                        // Try just salesforce.com
-                        sfCookie = cookies.find(c => c.domain.includes(orgSubdomain) && c.domain.includes('salesforce.com'));
-                    }
-                }
-
-                // 3. Fallback: If strict match failed, try loose match on targetDomain
-                if (!sfCookie && targetDomain) {
+                    // 1. Try exact/subset match first
                     sfCookie = cookies.find(c => targetDomain.includes(c.domain) || c.domain.includes(targetDomain));
-                }
 
-                // 4. Final Fallback: Any salesforce.com cookie
-                if (!sfCookie) {
+                    // 2. If failed, try matching the "Org Name" (subdomain)
+                    if (!sfCookie) {
+                        const targetParts = targetDomain.split('.');
+                        // The Org ID is usually the first part of the hostname in modern URLs
+                        const orgId = targetParts[0];
+                        if (Salesforce.DEBUG) console.log(`DEBUG: Extracted Org ID: ${orgId}`);
+
+                        if (orgId && orgId.length > 2) { // Avoid trivial matches like 'www'
+                            sfCookie = cookies.find(c => c.domain.includes(orgId) && c.domain.includes('salesforce.com'));
+                        }
+                    }
+                } else {
+                    // No target domain? Pick the first ".salesforce.com" one (Legacy behavior)
+                    // Or better, prefer "my.salesforce.com" over generic ones if possible?
                     sfCookie = cookies.find(c => c.domain.includes("my.salesforce.com")) || cookies.find(c => c.domain.includes("salesforce.com"));
                 }
 
@@ -60,21 +50,9 @@ const Salesforce = {
                     return;
                 }
 
-                // Auto-Correct URL: If we somehow ended up with a lightning domain, TRY to rewrite it.
-                // But generally, using the cookie's domain is safest if we picked the right cookie.
-                let serverUrl = `https://${sfCookie.domain}`;
-
-                // Edge Case: If the cookie itself IS lightning (rare but possible if only that cookie exists), WARN or try to rewrite?
-                // Usually SID cookies are scoped to .salesforce.com. If we found one, it should be good.
-                // If the cookie is .force.com, we might be in trouble. 
-                if (serverUrl.includes('lightning.force.com')) {
-                    console.warn('Selected cookie is still on Lightning domain. Attempting rewrite to my.salesforce.com...');
-                    if (orgSubdomain) {
-                        serverUrl = `https://${orgSubdomain}.my.salesforce.com`;
-                    }
-                }
-
-                resolve({ serverUrl, sessionId: sfCookie.value });
+                const serverUrl = `https://${sfCookie.domain}`;
+                const sessionId = sfCookie.value;
+                resolve({ serverUrl, sessionId });
             });
         });
     },
